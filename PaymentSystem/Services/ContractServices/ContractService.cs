@@ -4,6 +4,7 @@ using PaymentSystem.Models.ContractModels;
 using PaymentSystem.Models.ProductModels;
 using PaymentSystem.Repositories.ClientRepositories;
 using PaymentSystem.Repositories.ContractRepositories;
+using PaymentSystem.Repositories.SoftwareDiscountRepositories;
 using PaymentSystem.Repositories.SoftwareRepositories;
 
 namespace PaymentSystem.Services.ContractServices;
@@ -12,13 +13,15 @@ public class ContractService : IContractService
 {
     private readonly IContractRepository _contractRepository;
     private readonly ISoftwareRepository _softwareRepository;
+    private readonly ISoftwareDiscountRepository _softwareDiscountRepository;
     private readonly IClientRepository _clientRepository;
 
 
-    public ContractService(IContractRepository contractRepository, ISoftwareRepository softwareRepository, IClientRepository clientRepository)
+    public ContractService(IContractRepository contractRepository, ISoftwareRepository softwareRepository, ISoftwareDiscountRepository softwareDiscountRepository, IClientRepository clientRepository)
     {
         _contractRepository = contractRepository;
         _softwareRepository = softwareRepository;
+        _softwareDiscountRepository = softwareDiscountRepository;
         _clientRepository = clientRepository;
     }
 
@@ -26,7 +29,7 @@ public class ContractService : IContractService
     public async Task AddContract(AddContractDTO addContractDto)
     {
         Client? client = await _clientRepository.GetClientById(addContractDto.ClientId);
-        if (client is null) throw new Exception($"Client with ID: {addContractDto.ClientId} does not exist!");
+        if (client is null || (client.IsDeleted ?? false)) throw new Exception($"Client with ID: {addContractDto.ClientId} does not exist!");
         
         Software? software = await _softwareRepository.GetSoftwareById(addContractDto.SoftwareId);
         if (software is null) throw new Exception($"Software with ID: {addContractDto.SoftwareId} does not exist!");
@@ -78,8 +81,8 @@ public class ContractService : IContractService
         //jezeli klient ponownie korzysta z naszych usług - dodatkowe 5% zniżki
         if (IsReturningClient(client)) finalDiscount -= 0.5m;
         //wybor najwyzszej znizki dla danego software'u
-        var maxSoftwareDiscount = software.SoftwareDiscounts.Any() ? software.SoftwareDiscounts.Max(x => x.DiscountRate) : 0;
-        finalDiscount -= maxSoftwareDiscount;
+        var maxSoftwareDiscount = await _softwareDiscountRepository.GetHighestDiscountBySoftwareId(software.SoftwareId);
+        finalDiscount -= maxSoftwareDiscount / 100;
 
         return (software.Price + maintenanceYearsFee) * finalDiscount;
     }

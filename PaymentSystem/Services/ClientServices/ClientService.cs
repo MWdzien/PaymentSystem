@@ -91,7 +91,7 @@ public class ClientService : IClientService
 
     public void DoesClientExist(Client client, int clientId)
     {
-        if (client is null) throw new Exception($"Client with ID: {clientId} does not exist!");
+        if (client is null || (client.IsDeleted ?? false)) throw new Exception($"Client with ID: {clientId} does not exist!");
     }
 
     public async Task IsPeselUnique(string pesel)

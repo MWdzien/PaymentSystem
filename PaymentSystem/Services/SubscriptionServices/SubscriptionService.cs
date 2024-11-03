@@ -24,7 +24,7 @@ public class SubscriptionService : ISubscriptionService
     public async Task CreateSubscription(SubscriptionDTO subscriptionDto)
     {
         Client? client = await _clientRepository.GetClientById(subscriptionDto.ClientId);
-        if (client == null) throw new Exception($"Client with ID: {subscriptionDto.ClientId} does not exist!");
+        if (client == null || (client.IsDeleted ?? false)) throw new Exception($"Client with ID: {subscriptionDto.ClientId} does not exist!");
 
         var discountAmount = client.Contracts.Any(con => con.IsSigned) ? 0.05m : 0.0m;
         var finalPrice = subscriptionDto.Price - (subscriptionDto.Price * discountAmount);
@@ -60,7 +60,7 @@ public class SubscriptionService : ISubscriptionService
         if (subscription == null)
             throw new Exception($"Subscription with ID: {subscriptionId} does not exist!");
         Client? client = await _clientRepository.GetClientById(subscription.ClientId);
-        if (client == null) throw new Exception($"Client with ID: {subscription.ClientId} does not exist!");
+        if (client == null || (client.IsDeleted ?? false)) throw new Exception($"Client with ID: {subscription.ClientId} does not exist!");
 
         
         

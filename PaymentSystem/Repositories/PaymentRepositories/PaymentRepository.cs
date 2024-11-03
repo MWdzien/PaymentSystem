@@ -37,5 +37,16 @@ public class PaymentRepository : IPaymentRepository
         return await _databaseContext.Payments.Where(p => p.ContractId == contractId).ToListAsync();
     }
 
-    
+    public async Task<decimal> CalculateAllPayments()
+    {
+        var allPayments = await _databaseContext.Payments.ToListAsync();
+        var totalPayments = 0.0m;
+        
+        foreach (var payment in allPayments)
+        {
+            totalPayments += payment.Amount;
+        }
+
+        return totalPayments;
+    }
 }

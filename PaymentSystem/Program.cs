@@ -4,13 +4,16 @@ using PaymentSystem.Repositories.ClientRepositories;
 using PaymentSystem.Repositories.ContractRepositories;
 using PaymentSystem.Repositories.PaymentRepositories;
 using PaymentSystem.Repositories.RevenueRepositories;
+using PaymentSystem.Repositories.SoftwareDiscountRepositories;
 using PaymentSystem.Repositories.SoftwareRepositories;
 using PaymentSystem.Repositories.SubscriptionRepositories;
+using PaymentSystem.Repositories.UserRepositories;
 using PaymentSystem.Services.ClientServices;
 using PaymentSystem.Services.ContractServices;
 using PaymentSystem.Services.PaymentServices;
 using PaymentSystem.Services.RevenueServices;
 using PaymentSystem.Services.SubscriptionServices;
+using PaymentSystem.Services.UserAuthServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,13 +29,16 @@ builder.Services.AddScoped<IContractService, ContractService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<IRevenueService, RevenueService>();
+builder.Services.AddScoped<IUserAuthService, UserAuthService>();
 
 builder.Services.AddScoped<IClientRepository, ClientRepository>();
 builder.Services.AddScoped<IContractRepository, ContractRepository>();
 builder.Services.AddScoped<ISoftwareRepository, SoftwareRepository>();
+builder.Services.AddScoped<ISoftwareDiscountRepository, SoftwareDiscountRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 builder.Services.AddScoped<IRevenueRepository, RevenueRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 var app = builder.Build();
 

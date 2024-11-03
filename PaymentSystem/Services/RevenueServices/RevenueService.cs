@@ -26,8 +26,8 @@ public class RevenueService : IRevenueService
         return subscriptionRevenue + contractsRevenue;
     }
 
-    public Task<decimal> CalculateProjectedRevenue()
+    public async Task<decimal> CalculateProjectedRevenue()
     {
-        throw new NotImplementedException();
+        return await _paymentRepository.CalculateAllPayments();
     }
 }

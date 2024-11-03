@@ -19,8 +19,10 @@ public class DatabaseContext : DbContext
     public DbSet<Client> Clients { get; set; }
     public DbSet<Contract> Contracts { get; set; }
     public DbSet<Software> Softwares { get; set; }
+    public DbSet<SoftwareDiscount> SoftwareDiscount { get; set; }
     public DbSet<Payment> Payments { get; set; }
     public DbSet<Subscription> Subscriptions { get; set; }
+    public DbSet<User> Users { get; set; }
     
     
 
@@ -67,16 +69,59 @@ public class DatabaseContext : DbContext
             }
         });
 
+        modelBuilder.Entity<Software>().HasMany(s => s.SoftwareDiscounts).WithOne(sd => sd.Software)
+            .HasForeignKey(sd => sd.SoftwareId);
+
         modelBuilder.Entity<Software>().HasData(new List<Software>()
         {
             new()
             {
                 SoftwareId = 1,
-                Name = "Software1",
-                Description = "Description descriptiopn descritortopn",
-                Category = "Business",
-                CurrentVersion = "1.0",
-                Price = 10000
+                Name = "PhotoEditor Pro",
+                Description = "Advanced photo editing software with AI features.",
+                CurrentVersion = "3.2.1",
+                Category = "Graphics",
+                Price = 500.00m,
+                
+            },
+            new()
+            {
+                SoftwareId = 2,
+                Name = "CodeMaster IDE",
+                Description = "Integrated Development Environment for professional developers.",
+                CurrentVersion = "2.5.0",
+                Category = "Development",
+                Price = 1000.00m,
+            }
+        });
+
+        modelBuilder.Entity<SoftwareDiscount>().HasData(new List<SoftwareDiscount>()
+        {
+            new (){
+                SoftwareDiscountId = 201,
+                DiscountName = "Summer Discount",
+                DiscountRate = 12m,
+                DateFrom = DateTime.Parse("2024-06-01T00:00:00"),
+                DateTo = DateTime.Parse("2024-06-30T23:59:59"),
+                SoftwareId = 2
+            },
+            new ()
+            {
+                SoftwareDiscountId = 101,
+                DiscountName = "Black Friday Sale",
+                DiscountRate = 10m,
+                DateFrom = DateTime.Parse("2023-11-24T00:00:00"),
+                DateTo = DateTime.Parse("2023-11-30T23:59:59"),
+                SoftwareId = 1
+            },
+            new()
+            {
+                SoftwareDiscountId = 102,
+                DiscountName = "Spring Promotion",
+                DiscountRate = 15m,
+                DateFrom = DateTime.Parse("2024-03-01T00:00:00"),
+                DateTo = DateTime.Parse("2024-03-31T23:59:59"),
+                SoftwareId = 1
             }
         });
     }

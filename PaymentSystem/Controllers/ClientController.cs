@@ -19,8 +19,13 @@ public class ClientController : ControllerBase
     [HttpPost("individualClient")]
     public async Task<IActionResult> AddIndividualClient(AddIndividualClientDTO addIndividualClientDto)
     {
-        await _clientService.AddIndividualClient(addIndividualClientDto);
-        return Created();
+        if (ModelState.IsValid)
+        {
+            await _clientService.AddIndividualClient(addIndividualClientDto);
+            return Created();
+        }
+
+        return BadRequest();
     }
     
     [HttpPost("companyClient")]
