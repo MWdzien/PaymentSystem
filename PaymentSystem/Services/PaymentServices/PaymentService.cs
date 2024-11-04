@@ -1,4 +1,5 @@
 using PaymentSystem.Enums;
+using PaymentSystem.Exceptions;
 using PaymentSystem.Models;
 using PaymentSystem.Models.ContractModels;
 using PaymentSystem.Repositories.ContractRepositories;
@@ -21,8 +22,10 @@ public class PaymentService : IPaymentService
     public async Task ProcessPayment(int contractId, decimal amount)
     {
         Contract? contract = await _contractRepository.GetContractById(contractId);
-        if (contract == null || contract.IsExpired)
-            throw new Exception($"Contract with ID: {contractId} is not active");
+        if (contract == null)
+            throw new ResourceNotFoundException("Contract", contractId);
+        if (contract.IsExpired)
+            throw new InvalidTimespanException($"Contract with ID: {contractId} is not active");
 
         var totalPayments = await _paymentRepository.CalculateTotalPayments(contractId);
         if (totalPayments + amount >= contract.Price)

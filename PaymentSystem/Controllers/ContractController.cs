@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using PaymentSystem.DTOs.ContractDTOs;
+using PaymentSystem.Exceptions;
 using PaymentSystem.Services.ContractServices;
 
 namespace PaymentSystem.Controllers;
@@ -18,14 +19,45 @@ public class ContractController : ControllerBase
     [HttpPost("newContract")]
     public async Task<IActionResult> AddNewContract([FromBody] AddContractDTO addNewContractDto)
     {
-        await _contractService.AddContract(addNewContractDto);
-        return Created();
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        try
+        {
+            await _contractService.AddContract(addNewContractDto);
+            return Created();
+        }
+        catch (Exception e) when (e is ClientDeletedException || e is ResourceNotFoundException)
+        {
+            return NotFound(e.Message);
+        }
+        catch (Exception e) when (e is ResourceAlreadyExistsException || e is InvalidTimespanException)
+        {
+            return BadRequest(e.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, "Unexpected error");
+        }
     }
     
     [HttpDelete("deleteContract/{contractId:int}")]
     public async Task<IActionResult> DeleteContract(int contractId)
     {
-        await _contractService.DeleteContract(contractId);
-        return NoContent();
+        try
+        {
+            await _contractService.DeleteContract(contractId);
+            return NoContent();
+        }
+        catch (ResourceNotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, "Unexpected error");
+        }
     }
 }

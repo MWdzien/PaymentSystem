@@ -6,6 +6,7 @@ using PaymentSystem.Models;
 namespace PaymentSystem.Repositories.ClientRepositories;
 
 public class ClientRepository : IClientRepository
+
 {
     private readonly DatabaseContext _databaseContext;
 

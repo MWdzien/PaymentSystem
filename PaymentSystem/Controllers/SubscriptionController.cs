@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using PaymentSystem.DTOs;
+using PaymentSystem.Exceptions;
 using PaymentSystem.Services.SubscriptionServices;
 
 namespace PaymentSystem.Controllers;
@@ -18,14 +19,42 @@ public class SubscriptionController : ControllerBase
     [HttpPost("create")]
     public async Task<IActionResult> CreateSubscription([FromBody] SubscriptionDTO subscriptionDto)
     {
-        await _subscriptionService.CreateSubscription(subscriptionDto);
-        return Ok();
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        try
+        {
+            await _subscriptionService.CreateSubscription(subscriptionDto);
+            return NoContent();
+        }
+        catch (Exception e) when (e is ResourceNotFoundException || e is ClientDeletedException)
+        {
+            return NotFound(e.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, "Unexpected error");
+        }
     }
 
     [HttpPut("{subscriptionId:int}/renew")]
     public async Task<IActionResult> RenewSubscription(int subscriptionId)
     {
-        await _subscriptionService.RenewSubscription(subscriptionId);
-        return Ok();
+        try
+        {
+            await _subscriptionService.RenewSubscription(subscriptionId);
+            return Ok();
+        }
+        catch (Exception e) when (e is ResourceNotFoundException || e is ClientDeletedException)
+        {
+            return NotFound(e.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, "Unexpected error");
+        }
+        
     }
 }

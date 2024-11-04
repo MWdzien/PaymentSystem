@@ -1,4 +1,5 @@
 using PaymentSystem.DTOs.ContractDTOs;
+using PaymentSystem.Exceptions;
 using PaymentSystem.Models;
 using PaymentSystem.Models.ContractModels;
 using PaymentSystem.Models.ProductModels;
@@ -29,13 +30,14 @@ public class ContractService : IContractService
     public async Task AddContract(AddContractDTO addContractDto)
     {
         Client? client = await _clientRepository.GetClientById(addContractDto.ClientId);
-        if (client is null || (client.IsDeleted ?? false)) throw new Exception($"Client with ID: {addContractDto.ClientId} does not exist!");
+        if (client is null) throw new ResourceNotFoundException("Client", addContractDto.ClientId);
+        if (client.IsDeleted ?? false) throw new ClientDeletedException(addContractDto.ClientId);
         
         Software? software = await _softwareRepository.GetSoftwareById(addContractDto.SoftwareId);
-        if (software is null) throw new Exception($"Software with ID: {addContractDto.SoftwareId} does not exist!");
+        if (software is null) throw new ResourceNotFoundException("Software", addContractDto.SoftwareId);
 
         if (await _contractRepository.DoesContractExist(client, software))
-            throw new Exception($"Active contract for this client and software already exists!");
+            throw new ResourceAlreadyExistsException($"Active contract for this client and software already exists!");
         
         IsTimespanValid(addContractDto.DateFrom, addContractDto.DateTo);
 
@@ -70,7 +72,7 @@ public class ContractService : IContractService
     public void IsTimespanValid(DateTime dateFrom, DateTime dateTo)
     {
         TimeSpan timespan = dateTo - dateFrom;
-        if (timespan.Days < 3 || timespan.Days > 30) throw new Exception($"Contracts timespan should be between 3 and 30 days long!");
+        if (timespan.Days < 3 || timespan.Days > 30) throw new InvalidTimespanException($"Contracts timespan should be between 3 and 30 days long!");
     }
 
     public async Task<decimal> CalculatePrice(Software software, Client client, int? maintenanceYears)
@@ -94,7 +96,7 @@ public class ContractService : IContractService
 
     public void DoesContractExist(Contract? contract, int contractId)
     {
-        if (contract == null) throw new Exception($"Contract with ID: {contractId} does not exist!");
+        if (contract == null) throw new ResourceNotFoundException("Contract", contractId);
     }
 
     public async Task<decimal> CalculateContractRevenue()

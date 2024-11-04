@@ -1,5 +1,6 @@
 using PaymentSystem.DTOs;
 using PaymentSystem.Enums;
+using PaymentSystem.Exceptions;
 using PaymentSystem.Models;
 using PaymentSystem.Repositories.ClientRepositories;
 
@@ -57,7 +58,7 @@ public class ClientService : IClientService
 
         if (client.ClientType == ClientType.CompanyClient)
         {
-            throw new Exception($"Can't delete company client");
+            throw new WrongClientTypeException($"Can't delete company client");
         }
 
         await _clientRepository.DeleteIndividualClient(client);
@@ -70,7 +71,7 @@ public class ClientService : IClientService
         
         if (client.ClientType == ClientType.CompanyClient)
         {
-            throw new Exception($"Client with ID: {individualClientId} is a company client!");
+            throw new WrongClientTypeException($"Client with ID: {individualClientId} is a company client!");
         }
 
         await _clientRepository.UpdateIndividualClient(client, updateIndividualClientDto);
@@ -83,7 +84,7 @@ public class ClientService : IClientService
 
         if (client.ClientType == ClientType.IndividualClient)
         {
-            throw new Exception($"Client with ID: {companyClientId} is a company client!");
+            throw new WrongClientTypeException($"Client with ID: {companyClientId} is a company client!");
         }
         
         await _clientRepository.UpdateCompanyClient(client, updateCompanyClientDto);
@@ -91,18 +92,19 @@ public class ClientService : IClientService
 
     public void DoesClientExist(Client client, int clientId)
     {
-        if (client is null || (client.IsDeleted ?? false)) throw new Exception($"Client with ID: {clientId} does not exist!");
+        if (client.IsDeleted ?? false) throw new ClientDeletedException(clientId);
+        if (client is null) throw new ResourceNotFoundException("Client", clientId);
     }
 
     public async Task IsPeselUnique(string pesel)
     {
         if (await _clientRepository.DoesClientWithPeselExist(pesel))
-            throw new Exception($"Client with PESEl: {pesel} already exists!");
+            throw new ResourceAlreadyExistsException($"Client with PESEl: {pesel} already exists");
     }
 
     public async Task IsKrsUnique(string krs)
     {
         if (await _clientRepository.DoesClientWithKrsExist(krs))
-            throw new Exception($"Client with KRS: {krs} already exists!");
+            throw new ResourceAlreadyExistsException($"Client with KRS: {krs} already exists");
     }
 }

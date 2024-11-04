@@ -17,15 +17,29 @@ public class RevenueController : ControllerBase
     [HttpGet("current")]
     public async Task<IActionResult> GetCurrentRevenue()
     {
-        var revenue = await _revenueService.CalculateCurrentRevenue();
-        return Ok(revenue);
+        try
+        {
+            var revenue = await _revenueService.CalculateCurrentRevenue();
+            return Ok(revenue);
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, "Unexpected error");
+        }
     }
     
     
     [HttpGet("projected")]
     public async Task<IActionResult> GetProjectedRevenue()
     {
-        var revenue = await _revenueService.CalculateProjectedRevenue();
-        return Ok(revenue);
+        try
+        {
+            var revenue = await _revenueService.CalculateProjectedRevenue();
+            return Ok(revenue);
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, "Unexpected error");
+        }
     }
 }

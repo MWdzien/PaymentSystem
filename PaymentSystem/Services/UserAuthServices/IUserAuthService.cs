@@ -5,8 +5,8 @@ namespace PaymentSystem.Services.UserAuthServices;
 
 public interface IUserAuthService
 {
-    public Task<User> RegisterUser(UserDTO userDto);
+    public Task RegisterUser(UserDTO userDto);
     public Task<string> LoginUser(UserDTO userDto);
     
-    public Task IsLoginUnique(string login);
+    public Task IsLoginUnique(string username);
 }

@@ -1,5 +1,6 @@
 using PaymentSystem.DTOs;
 using PaymentSystem.Enums;
+using PaymentSystem.Exceptions;
 using PaymentSystem.Models;
 using PaymentSystem.Repositories.ClientRepositories;
 using PaymentSystem.Repositories.PaymentRepositories;
@@ -24,7 +25,9 @@ public class SubscriptionService : ISubscriptionService
     public async Task CreateSubscription(SubscriptionDTO subscriptionDto)
     {
         Client? client = await _clientRepository.GetClientById(subscriptionDto.ClientId);
-        if (client == null || (client.IsDeleted ?? false)) throw new Exception($"Client with ID: {subscriptionDto.ClientId} does not exist!");
+        if (client == null) throw new ResourceNotFoundException($"Client with ID: {subscriptionDto.ClientId} does not exist");
+        if (client.IsDeleted ?? false)
+            throw new ClientDeletedException(subscriptionDto.ClientId);
 
         var discountAmount = client.Contracts.Any(con => con.IsSigned) ? 0.05m : 0.0m;
         var finalPrice = subscriptionDto.Price - (subscriptionDto.Price * discountAmount);
@@ -55,13 +58,12 @@ public class SubscriptionService : ISubscriptionService
 
     public async Task RenewSubscription(int subscriptionId)
     {
-        
         var subscription = await _subscriptionRepository.GetSubscriptionById(subscriptionId);
         if (subscription == null)
-            throw new Exception($"Subscription with ID: {subscriptionId} does not exist!");
+            throw new ResourceNotFoundException("Subscription", subscriptionId);
+        
         Client? client = await _clientRepository.GetClientById(subscription.ClientId);
-        if (client == null || (client.IsDeleted ?? false)) throw new Exception($"Client with ID: {subscription.ClientId} does not exist!");
-
+        if (client.IsDeleted ?? false) throw new ClientDeletedException(subscription.ClientId);
         
         
         subscription.DateFrom = DateTime.Now;

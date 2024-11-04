@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using PaymentSystem.DTOs.UserDTOs;
+using PaymentSystem.Exceptions;
 using PaymentSystem.Models;
 using PaymentSystem.SecurityHelpers;
 using PaymentSystem.Repositories.UserRepositories;
@@ -18,7 +19,7 @@ public class UserAuthService : IUserAuthService
     }
 
 
-    public async Task<User> RegisterUser(UserDTO userDto)
+    public async Task RegisterUser(UserDTO userDto)
     {
         await IsLoginUnique(userDto.Username);
         
@@ -33,17 +34,15 @@ public class UserAuthService : IUserAuthService
         };
 
         await _userRepository.AddUser(newUser);
-        
-        return newUser;
     }
 
     public async Task<string> LoginUser(UserDTO userDto)
     {
         User? user = await _userRepository.GetUserByLogin(userDto.Username);
-        if (user is null) throw new Exception($"User with login {userDto.Username} doesn't exist!");
+        if (user is null) throw new ResourceNotFoundException("User", userDto.Username);
 
         if (!SecurityHelper.VerifyPasswordHash(userDto.Password, user.PasswordHash, user.PasswordSalt))
-            throw new Exception($"Wrong password");
+            throw new InvalidPasswordException();
         
 
         var accessToken = SecurityHelper.CreateToken(user, _configuration.GetSection("Security:Token").Value);
@@ -51,9 +50,9 @@ public class UserAuthService : IUserAuthService
         return accessToken;
     }
 
-    public async Task IsLoginUnique(string login)
+    public async Task IsLoginUnique(string username)
     {
-        if (await _userRepository.GetUserByLogin(login) is not null)
-            throw new Exception($"Login: {login} is already taken");
+        if (await _userRepository.GetUserByLogin(username) is not null)
+            throw new ResourceAlreadyExistsException("Username", username);
     }
 }

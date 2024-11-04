@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using PaymentSystem.DTOs.UserDTOs;
+using PaymentSystem.Exceptions;
 using PaymentSystem.Services.UserAuthServices;
 
 namespace PaymentSystem.Controllers;
@@ -18,15 +19,51 @@ public class UserAuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> RegisterUser([FromBody] UserDTO registerUserDto)
     {
-        var newUser = await _userAuthService.RegisterUser(registerUserDto);
-        return Ok(newUser);
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        try
+        {
+            await _userAuthService.RegisterUser(registerUserDto);
+            return NoContent();
+        }
+        catch (ResourceAlreadyExistsException e)
+        {
+            return BadRequest(e.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, "UnexpectedError");
+        }
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> LoginUser(UserDTO loginUserDto)
     {
-        var token = await _userAuthService.LoginUser(loginUserDto);
-        return Ok(token);
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        try
+        {
+            var token = await _userAuthService.LoginUser(loginUserDto);
+            return Ok(token);
+        }
+        catch (ResourceNotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
+        catch (InvalidPasswordException e)
+        {
+            return Unauthorized(e.Message);
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, "Unexpected error");
+        }
     }
 
     /*
