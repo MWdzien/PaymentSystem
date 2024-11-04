@@ -99,7 +99,7 @@ public class ClientService : IClientService
     public async Task IsPeselUnique(string pesel)
     {
         if (await _clientRepository.DoesClientWithPeselExist(pesel))
-            throw new ResourceAlreadyExistsException($"Client with PESEl: {pesel} already exists");
+            throw new ResourceAlreadyExistsException($"Client with PESEL: {pesel} already exists");
     }
 
     public async Task IsKrsUnique(string krs)
